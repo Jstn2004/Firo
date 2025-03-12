@@ -36,6 +36,7 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
   roomPasswordIncorrectSubscription: Subscription | undefined;
   errorStatus = false; 
   errorText = ""; 
+  passwordStatus = true;
 
   constructor(private ngZone: NgZone, public socketService: SocketService) { }
 
@@ -162,6 +163,9 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     );
     this.errorStatus = false
+    if(this.password === '') {
+      this.passwordStatus = false;
+    }
   }
 
   joinRoom(): void {
@@ -191,6 +195,9 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.errorStatus = false;
+    if(this.password === '') {
+      this.passwordStatus = false;
+    }
   }
 
 

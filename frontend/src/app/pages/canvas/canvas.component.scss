@@ -325,14 +325,18 @@ span{
         align-items: center;
         justify-content: center;
         margin-bottom: 2em;
-        gap: 5px;
+        gap: 1em;
         width: calc(100% - 4rem);
         align-items: center;
         margin: auto;
         height: 5rem;
-        background-color:white;
+        background-color: white;
         border-radius: 8px 8px 0 0 ;
-
+        flex-wrap: wrap;
+        height: auto;
+        padding-top:  10px; 
+        padding-bottom: 10px;
+    
 
       }
 
@@ -342,9 +346,10 @@ span{
         border-radius: 12px;
         backdrop-filter: blur(33px);
         color: rgba(0,0,0,0.8);
-        width: 20%;
+        width: auto;
         font-size: 12px;
         display: flex;
+        gap: 1em;
         align-content: center;
         justify-content: space-around;
         height: 5.3em;
@@ -361,12 +366,13 @@ span{
         justify-content: center;
         flex-direction: column;
         height: 4em;
+        padding: 5px;
 
       }
 
       .value
       {
-        font-size: 1.2rem;
+        font-size: 0.8rem;
         font-weight: bold;
         color: #2e2e2e;
       }
@@ -410,4 +416,6 @@ span{
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), 
                         -4px -4px 8px rgba(255, 255, 255, 0.6);
             transition: all 0.2s ease-in-out;
+            width: auto;
+
           }
