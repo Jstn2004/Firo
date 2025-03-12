@@ -22,14 +22,14 @@ export class SocketService {
     });
   }
 
-  joinRoom(roomId: string): void {
+  joinRoom(roomId: string, password: string): void {
     console.log('Joining room:', roomId);
-    this.socket.emit('joinRoom', { roomId, userId: this.userId });
+    this.socket.emit('joinRoom', { roomId, userId: this.userId, password });
   }
 
-  createRoom(roomId: string): void {
+  createRoom(roomId: string, password: string): void {
     console.log('Creating room:', roomId);
-    this.socket.emit('createRoom', { roomId, userId: this.userId });
+    this.socket.emit('createRoom', { roomId, userId: this.userId, password  });
   }
 
  
@@ -57,6 +57,14 @@ export class SocketService {
   onRoomNotFind(): Observable<{ roomId: string }> {
     return new Observable(observer => {
       this.socket.on('roomNotFound', (data: { roomId: string }) => {
+        observer.next(data);
+      });
+    });
+  }
+
+  onPasswordIncorrect(): Observable<{ roomId: string }> {
+    return new Observable(observer => {
+      this.socket.on('passwordIncorrect', (data: { roomId: string }) => {
         observer.next(data);
       });
     });

@@ -23,7 +23,7 @@ const rooms = {};
 io.on('connection', (socket) => {
   console.log('Neue Verbindung:', socket.id);
 
-  socket.on('createRoom', ({ roomId, userId }) => {
+  socket.on('createRoom', ({ roomId, userId, password }) => {
     if (roomId && userId) {
       if (rooms[roomId]) {
         console.log(`Client ${userId} wollte Raum ${roomId} erstellen, aber Raum existiert bereits.`);
@@ -31,7 +31,7 @@ io.on('connection', (socket) => {
         return;
       }
       socket.join(roomId);
-      rooms[roomId] = { creator: userId, members: [socket.id] }; 
+      rooms[roomId] = { creator: userId, members: [socket.id], password: password }; 
       console.log(`Client ${userId} hat den Raum ${roomId} erstellt.`);   
       socket.emit('roomCreated', { roomId }); 
       emitRoomMembers(roomId);
@@ -40,13 +40,20 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('joinRoom', ({ roomId, userId }) => {
+  socket.on('joinRoom', ({ roomId, userId, password }) => {
     if (roomId && userId) {
       if (!rooms[roomId]) {
         console.log(`Client ${userId} wollte Raum ${roomId} beitreten, aber Raum existiert nicht.`);
         socket.emit('roomNotFound', { roomId }); 
         return;
       }
+      if(rooms[roomId].password !== password){
+        console.log(password);
+        console.log(`Client ${userId} wollte Raum ${roomId} beitreten, aber falsches Passwort.`);
+        socket.emit('passwordIncorrect', { roomId });
+        return;
+      }
+      
       socket.join(roomId);
       rooms[roomId].members.push(socket.id); 
       console.log(`Client ${userId} ist dem Raum ${roomId} beigetreten.`);
@@ -83,7 +90,11 @@ io.on('connection', (socket) => {
         console.log("Clients werden aktualisiert");
         rooms[roomId].members = room.members.filter((member) => member !== socket.id);
         emitRoomMembers(roomId);
+        if(rooms[roomId].members.length === 0) {
+          console.log('Raum wird gelöscht');
+          delete rooms[roomId];
       }
+    }
     });
   }); 
 });

@@ -20,8 +20,7 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
   public brushwidth = 5;
   public roomId = 'XXXX';
   showForm = true;
-  password = '****';
-  text = '';
+  password = '';
   public name = '';
   members: string[] = []; 
   roomIdtext: string = '';
@@ -34,6 +33,9 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
   roomNotFoundSubscription: Subscription | undefined;
   roomExistsSubscription: Subscription | undefined;
   clearCanvasSubscription: Subscription | undefined;
+  roomPasswordIncorrectSubscription: Subscription | undefined;
+  errorStatus = false; 
+  errorText = ""; 
 
   constructor(private ngZone: NgZone, public socketService: SocketService) { }
 
@@ -51,6 +53,35 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  drawGrid(gridSize: number) {
+    const width = this.canvas.getWidth();
+    const height = this.canvas.getHeight();
+  
+    for (let i = 0; i <= width; i += gridSize) {
+      this.canvas.add(new fabric.Line([i, 0, i, height], { 
+        stroke: "#ccc", 
+        selectable: false, 
+        evented: false 
+      }));
+    }
+  
+    for (let j = 0; j <= height; j += gridSize) {
+      this.canvas.add(new fabric.Line([0, j, width, j], { 
+        stroke: "#ccc", 
+        selectable: false, 
+        evented: false 
+      }));
+    }
+  }
+
+  resizeCanvas() {
+    const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize) * 4; // 4rem in px umwandeln
+
+    this.canvas.setWidth(window.innerWidth - remInPixels);
+    this.canvas.setHeight(window.innerHeight );
+    this.canvas.renderAll();
+  }
+
   ngOnDestroy(): void {
     if (this.socket) {
       this.socket.disconnect();
@@ -60,10 +91,14 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
   private initCanvas(): void {
     this.canvas = new fabric.Canvas(this.canvasRef!.nativeElement, {
       backgroundColor: "#ffffff",
-      width: 1200,
-      height: 600,
       isDrawingMode: true,
     });
+
+   this.resizeCanvas();
+   
+
+  window.addEventListener("resize", () => this.resizeCanvas());
+
     if (this.canvas.isDrawingMode) {
       const brush = new fabric.PencilBrush(this.canvas);
       brush.width = 5;   // Pinselgröße
@@ -110,7 +145,7 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   createRoom(): void {
-    this.socketService.createRoom(this.roomId);
+    this.socketService.createRoom(this.roomId, this.password);
     this.roomCreatedSubscription = this.socketService.onRoomCreated().subscribe(data => {
       console.log(`Raum ${data.roomId} wurde erstellt.`);
       this.roomIdtext = data.roomId;
@@ -122,14 +157,15 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.roomExistsSubscription = this.socketService.onRoomExists().subscribe(data => { 
-      console.log(`Raum ${data.roomId} existiert bereits.`);
-      this.text = "Raum existiert bereits.";
+      this.errorText =  `Raum existiert bereits.`;
+      this.errorStatus = true; 
     }
     );
+    this.errorStatus = false
   }
 
   joinRoom(): void {
-    this.socketService.joinRoom(this.roomId);
+    this.socketService.joinRoom(this.roomId, this.password);
     console.log(this.name);
     this.roomJoinedSubscription = this.socketService.onRoomJoined().subscribe(data => {
       console.log(`Benutzer ist dem Raum ${data.roomId} beigetreten.`);
@@ -144,8 +180,17 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.roomNotFoundSubscription = this.socketService.onRoomNotFind().subscribe(data => {
       console.log(`Raum ${data.roomId} nicht gefunden.`);
-      this.text = "Raum nicht gefunden.";
+      this.errorText = `Raum nicht gefunden.`;
+      this.errorStatus = true;
     });
+
+    this.roomPasswordIncorrectSubscription = this.socketService.onPasswordIncorrect().subscribe(data => {
+      console.log(`Falsches Passwort für Raum ${data.roomId}.`);
+      this.errorText = `Falsches Passwort.`;
+      this.errorStatus = true;
+    });
+
+    this.errorStatus = false;
   }
 
 
