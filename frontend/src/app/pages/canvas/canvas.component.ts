@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone, NgModule } from '@angular/core';
-import { io } from 'socket.io-client';
 import * as fabric from 'fabric';
 import { CommonModule } from '@angular/common';
 import { FormsModule} from '@angular/forms';
@@ -41,7 +40,12 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(private ngZone: NgZone, public socketService: SocketService) { }
 
   ngOnInit(): void {
- 
+    this.clearCanvasSubscription = this.socketService.onClearCanvas().subscribe(() => {
+      console.log('Empfangenes Clear-Canvas-Event');
+      this.canvas.clear();
+      this.canvas.backgroundColor = '#ffffff';
+      this.canvas.renderAll();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -54,30 +58,8 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  drawGrid(gridSize: number) {
-    const width = this.canvas.getWidth();
-    const height = this.canvas.getHeight();
-  
-    for (let i = 0; i <= width; i += gridSize) {
-      this.canvas.add(new fabric.Line([i, 0, i, height], { 
-        stroke: "#ccc", 
-        selectable: false, 
-        evented: false 
-      }));
-    }
-  
-    for (let j = 0; j <= height; j += gridSize) {
-      this.canvas.add(new fabric.Line([0, j, width, j], { 
-        stroke: "#ccc", 
-        selectable: false, 
-        evented: false 
-      }));
-    }
-  }
-
   resizeCanvas() {
-    const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize) * 4; // 4rem in px umwandeln
-
+    const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize) * 4;
     this.canvas.setWidth(window.innerWidth - remInPixels);
     this.canvas.setHeight(window.innerHeight );
     this.canvas.renderAll();
@@ -97,13 +79,12 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
 
    this.resizeCanvas();
    
-
   window.addEventListener("resize", () => this.resizeCanvas());
 
     if (this.canvas.isDrawingMode) {
       const brush = new fabric.PencilBrush(this.canvas);
-      brush.width = 5;   // Pinselgröße
-      brush.color = '#000000';  // Farbe
+      brush.width = 5;   
+      brush.color = '#000000'; 
       this.canvas.freeDrawingBrush = brush;
   
       console.log('Manuell Pinselgröße und Farbe gesetzt');
@@ -127,12 +108,9 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public clearCanvas(): void {
     this.socketService.cleanCanvas();
-    this.clearCanvasSubscription = this.socketService.onClearCanvas().subscribe(data => {
-      console.log('Canvas wird gelöscht' + data);
-      this.canvas.clear();
-      this.canvas.backgroundColor = '#ffffff';
-      this.canvas.renderAll();
-    });
+    this.canvas.clear(); 
+    this.canvas.backgroundColor = '#ffffff';
+    this.canvas.renderAll();
   }
 
   public changeColor(color: string): void {
@@ -209,7 +187,7 @@ export class CanvasComponent implements OnInit, OnDestroy, AfterViewInit {
         fill: null,
         selectable: false,
       });
-      this.canvas.add(fabricPath); // Füge den gezeichneten Pfad zum Canvas hinzu
+      this.canvas.add(fabricPath);
     });
   }
 
