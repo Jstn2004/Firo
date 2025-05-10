@@ -8,6 +8,15 @@ body{
     font-family: sans-serif;
 }
 
+#project-name{
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    font-style: italic; 
+   
+}
+
 @keyframes shake {
     0% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
